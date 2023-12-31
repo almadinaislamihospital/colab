@@ -30,7 +30,7 @@ CMD /startweston & bash
 
 RUN apt install sudo
 RUN sudo apt update
-RUN sudo apt-get install xrdp
+RUN sudo apt-get install xrdp -y
 RUN sudo systemctl enable xrdp
 RUN sudo ufw allow from any to any port 3389 proto tcp
 RUN ip address
