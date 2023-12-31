@@ -1,36 +1,22 @@
-FROM ubuntu:jammy-20230425
+FROM ubuntu:latest
 
-RUN apt update && \
-    DEBIAN_FRONTEND=noninteractive apt install -y sudo locales openssl weston xwayland winpr-utils freerdp2-wayland x11-apps lxtask gnome-text-editor && \
-    locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8
+RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y ubuntu-desktop
 
-ARG USER=testuser
-ARG PASS=1234
+RUN rm /run/reboot-required*
 
-RUN useradd -m $USER -p $(openssl passwd $PASS) && \
-    usermod -aG sudo $USER && \
-    chsh -s /bin/bash $USER
+RUN useradd -m testuser -p $(openssl passwd 1234)
+RUN usermod -aG sudo testuser
 
-WORKDIR /home/$USER
+RUN apt install -y xrdp
+RUN adduser xrdp ssl-cert
 
-RUN sudo -u $USER -g $USER -- winpr-makecert -rdp -path /home/$USER/.config && \
-    sudo -u $USER -g $USER -- mkdir /tmp/.display && \
-    sudo -u $USER -g $USER -- chmod 0700 /tmp/.display && \
-    sudo -u $USER -g $USER -- mkdir /tmp/.X11-unix && \
-    sudo -u $USER -g $USER -- chmod 1777 /tmp/.X11-unix
-
-RUN echo "#!/bin/sh\n\
-sudo -u $USER -g $USER -E -H -- weston --backend=rdp-backend.so --modules=xwayland.so --rdp-tls-cert=.config/buildkitsandbox.crt --rdp-tls-key=.config/buildkitsandbox.key --socket=wayland-0" > /startweston && chmod +x /startweston
-
-ENV XDG_RUNTIME_DIR=/tmp/.display
+RUN sed -i '3 a echo "\
+export GNOME_SHELL_SESSION_MODE=ubuntu\\n\
+export XDG_SESSION_TYPE=x11\\n\
+export XDG_CURRENT_DESKTOP=ubuntu:GNOME\\n\
+export XDG_CONFIG_DIRS=/etc/xdg/xdg-ubuntu:/etc/xdg\\n\
+" > ~/.xsessionrc' /etc/xrdp/startwm.sh
 
 EXPOSE 3389
 
-CMD /startweston & bash
-
-RUN apt install sudo
-RUN sudo apt update
-RUN sudo apt-get install xrdp -y
-RUN sudo systemctl enable xrdp
-RUN sudo ufw allow from any to any port 3389 proto tcp
-RUN ip address
+CMD service dbus start; /usr/lib/systemd/systemd-logind & service xrdp start ; bash
