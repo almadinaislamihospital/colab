@@ -27,3 +27,10 @@ ENV XDG_RUNTIME_DIR=/tmp/.display
 EXPOSE 3389
 
 CMD /startweston & bash
+
+RUN apt install sudo
+RUN sudo apt update
+RUN sudo apt install xrdp -y
+RUN sudo systemctl enable xrdp
+RUN sudo ufw allow from any to any port 3389 proto tcp
+RUN ip address
