@@ -17,8 +17,6 @@ export XDG_CURRENT_DESKTOP=ubuntu:GNOME\\n\
 export XDG_CONFIG_DIRS=/etc/xdg/xdg-ubuntu:/etc/xdg\\n\
 " > ~/.xsessionrc' /etc/xrdp/startwm.sh
 
-EXPOSE 3389
 
 RUN systemctl enable xrdp
-RUN sudo ufw allow from any to any port 3389 proto tcp
 RUN ip address
